@@ -5,5 +5,5 @@ Realmente este proyecto no tiene ningun objetivo o uno como tal sino solo experi
 ## Librerias externas o ajenas a cweb
 Para poder realizar esto se esta usando las librerias: **curl** y **sqlite3** las cuales encontraras en sus paginas oficiales
 ## Por último
-La libreria de momento solo funciona en linux y si de causalidad tienes un dispositivo movil funcionara ahi tambien(se recomienda la app de cxxdroid para que sea mas facil instalar las librerias necesarias)
+La libreria de momento solo funciona en linux y si de causalidad tienes un dispositivo movil con sistema Android funcionara ahi tambien(se recomienda la app de cxxdroid para que sea mas facil instalar las librerias necesarias)
 Espero que este proyecto te parezca interesante.
