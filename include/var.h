@@ -23,8 +23,8 @@ char buffer[BUFFER_SIZE] = {0};
 #define PORT_SMTP 1025
 #define MAX_VARS 1024
 
-char true_html[BUFFER_SIZE_3] = " ";
-char result_html[BUFFER_SIZE_3] = "<html>";
+char code_html[BUFFER_SIZE_3] = " ";
+char tmp_code_html[BUFFER_SIZE_3] = "<html>";
 int pre = 0;
 String content_file;
 size_t length;
