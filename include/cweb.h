@@ -26,5 +26,6 @@
 #include "http.h"
 #include "sqlite.h"
 #include "smtp.h"
+#include "cdo.h"
 
 #endif
