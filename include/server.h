@@ -699,5 +699,101 @@ int send_email(email *email){
     return (int)res;
 }
 
+static void _clear_ (struct Api_connect * api){
+    curl_global_cleanup();
+}
+
+static int api_connect_callback (void *data, size_t size, size_t nmemb, void *userp){
+    FILE * fp = fopen("./res/dataApi.api","a");
+    if(fp == NULL){
+        perror("cweb");
+        return -1;
+    }
+    size_t realsize = size * nmemb;
+    fprintf(fp,"%.*s\n\n", (int)realsize, (char *)data);
+    fclose(fp);
+    return realsize;
+}
+
+static int _simple_get (struct Api_connect * api){
+    if(api->is_error == OK){
+        int res = 0;
+        curl_easy_setopt(api->curl, CURLOPT_URL, api->url);
+        curl_easy_setopt(api->curl, CURLOPT_WRITEFUNCTION, api_connect_callback);
+        res = curl_easy_perform(api->curl);
+        if (res != CURLE_OK) {
+            if(api->errors == true){
+                fprintf(stderr, "cweb: %s\n",curl_easy_strerror(res));
+                api->is_error = ERROR;
+                return ERROR;
+            } else {
+                api->is_error = ERROR;
+                return ERROR;
+            }
+        }
+        curl_easy_cleanup(api->curl);
+        api->is_error = OK;
+        return OK;
+    } else {
+        api->is_error = ERROR;
+        return ERROR;
+    }
+}
+
+static int _prepare (struct Api_connect * api){
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    api->curl = curl_easy_init();
+    if(api->curl){
+        api->is_error = OK;
+        return OK;
+    } else {
+        api->is_error = ERROR;
+        return ERROR;
+    }
+}
+
+int _simple_post (struct Api_connect * api) {
+    int res = 0;
+    if(api->is_error == OK){
+        curl_easy_setopt(api->curl, CURLOPT_URL, api->url);
+        curl_easy_setopt(api->curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(api->curl, CURLOPT_POSTFIELDS, api->post);
+        curl_easy_setopt(api->curl, CURLOPT_WRITEFUNCTION, api_connect_callback);
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, api->headers);
+        curl_easy_setopt(api->curl, CURLOPT_HTTPHEADER, headers);
+        res = curl_easy_perform(api->curl);
+        if (res != CURLE_OK) {
+            if(api->errors == true){
+                fprintf(stderr, "cweb: %s\n",curl_easy_strerror(res));
+                api->is_error = ERROR;
+                return ERROR;
+            } else {
+                api->is_error = ERROR;
+                return ERROR;
+            }
+        }
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(api->curl);
+        api->is_error = OK;
+        return OK;
+    } else {
+        api->is_error = ERROR;
+        return ERROR;
+    }
+}
+
+void api_connect (struct Api_connect * api){
+    api->url = "http://example.com";
+    api->headers = "Content-Type: application/json";
+    api->post = "{\"example1\":\"example1\",\"example2\":\"example2\"}";
+    api->errors = true;
+    api->is_error = OK;
+    api->prepare = _prepare;
+    api->simple_get = _simple_get;
+    api->clear = _clear_;
+    api->simple_post = _simple_post;
+}
+
 
 #endif

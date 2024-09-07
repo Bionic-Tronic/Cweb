@@ -67,6 +67,8 @@ typedef struct{
 	char *(*descryptCharURL)(char *);
 	int (*saveBuffer)(const String);
 	void (*showBuffer)();
+	int is_error;
+    int show_errors;
 	String (*convertJsonData)(String [], String []);
 	int (*rebuilt_file)(const String, const String, int);
 	int (*registers_url)();
@@ -82,6 +84,8 @@ struct smtp {
     socklen_t client_addr_len;
     String name_file;
     int port;
+    int is_error;
+    int show_errors;
     int (*read)(struct smtp *);
     void (*close)(struct smtp *);
 };
@@ -287,20 +291,18 @@ typedef struct{
 	String (*upgrade_insecure_requests)();
 }Response;
 
-typedef struct{
-	int (*open_)(const String, const String, const String);
-	String (*load_)();
-	void (*close_)();
-	int (*send_)();
-	int (*send_content_server)(Server *);
-	int (*open_local)(const String, const String);
-	int status;
-	String data;
-	const String url;
-	struct curl_slist * headers;
-	int (*open_url)(const String);
-	char * (*connect)(const String, const String, const String, const String, char *);
-}Connect;
+struct Api_connect {
+    CURL *curl;
+    CURLcode res;
+    String url;
+    String post;
+    String headers;
+    int errors, is_error;
+    int (*prepare)(struct Api_connect *);
+    int (*simple_get)(struct Api_connect *);
+    int (*simple_post)(struct Api_connect *);
+    void (*clear)(struct Api_connect *);
+};
 
 typedef struct{
     String rute;
