@@ -1490,7 +1490,6 @@ static void _nav(const String attributes, const String nav)
 static void _text(const String cap)
 {
     char tmp1[HTML_LONG];
-    //concatplus(tmp_code_html,"",cap);
     snprintf(tmp_code_html, HTML_LONG, "%s\n", cap);
     cat_str(code_html, "", tmp1);
     cat_str(tmp1, tmp_code_html, code_html);
@@ -1512,28 +1511,51 @@ static int _send_html(Server *Server)
         write(Server->new_socket, response_2, strlen(response_2));
         close(Server->new_socket);
         return OK;
-        /*
-    char *response_2[BUFFER_SIZE];
-    Server->valread = read(Server->new_socket, buffer, BUFFER_SIZE);
-    concatplus(response_2,"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<b><span style=\"color: red\">Error</span>: %s</b>",strError);
-    write(Server->new_socket, response_2, strlen(response_2));
-    close(Server->new_socket);
-    return ERROR;
-    */
 }
 
-void _delete()
-{
+static int _send_html_(struct SERVER * Server){
+        if (listen(Server->server_fd, 3) < 0){
+            if(Server->errors == true){
+                perror("cweb");
+                Server->is_error = ERROR;
+                return ERROR;
+            } else {
+                Server->is_error = ERROR;
+                return ERROR;
+            }
+        }
+        if ((Server->new_socket = accept(Server->server_fd, (struct sockaddr *)&Server->server_addr, (socklen_t *)&Server->addrlen)) < 0){
+            if(Server->errors == true){
+                perror("cweb");
+                Server->is_error = ERROR;
+                return ERROR;
+            } else {
+                Server->is_error = ERROR;
+                return ERROR;
+            }
+        }
+        char *response_2[BUFFER_SIZE];
+        Server->valread = read(Server->new_socket, buffer, BUFFER_SIZE);
+        cat_str("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n", code_html, response_2);
+        write(Server->new_socket, response_2, strlen(response_2));
+        close(Server->new_socket);
+        Server->is_error = OK;
+        return OK;
+}
+
+String get_code_html_ () {
+    return code_html;
+}
+
+void _delete(){
     memset(code_html, 0, sizeof(code_html));
 }
 
-void viewHtml()
-{
+void viewHtml(){
     printf("%s\n", code_html);
 }
 
-void _show_html_console()
-{
+void _show_html_console(){
     printf("HTML send(length: %ld):\n%s\n", strlen(code_html), code_html);
 }
 
@@ -1754,6 +1776,8 @@ void buildHtml(BuildHtml *html)
     html->em = _em;
     html->coment_o = coment_1;
     html->coment_c = coment_2;
+    html->send_ = _send_html_;
     html->resetAllHTML = _delete;
+    html->get_code_html = get_code_html_;
 }
 #endif

@@ -15,7 +15,7 @@ typedef void (*func)();
 #define HTML_LONG 100096
 char buffer[BUFFER_SIZE] = {0};
 #define GET_RESPONSE() buffer
-#define DEFAULT_PORT 8000
+#define DEFAULT_PORT 8080
 #define DEFAULT_BUFFER_FILE 6046
 #define DEFAULT_URL "127.0.0.1"
 #define MAX 100
@@ -77,6 +77,19 @@ typedef struct{
        func function_page;
     } setPages;
 }Server;
+
+struct SERVER {
+    int addrlen;
+    int server_fd, new_socket, valread;
+    int server_socket, client_socket, errors, is_error, port, listen;
+    String url, response_code_html, response_code_404;
+    struct sockaddr_in server_addr, client_addr;
+    socklen_t client_addr_len;
+    int (*handle_client)(struct SERVER *);
+    int (*accept_conections)(struct SERVER *);
+    String (*load_response)();
+    int (*save_response_server)(const String);
+};
 
 struct smtp {
     int server_socket, client_socket;
@@ -237,9 +250,11 @@ typedef struct{
 	void (*php)(const String);
 	void (*text)(const String);
 	int (*send)(Server *);
+	int (*send_)(struct SERVER *);
 	void (*tr_o)(const String);
 	void (*tr_c)();
 	void (*load_extern_html)(const String);
+	String (*get_code_html)();
 }BuildHtml;
 
 typedef struct{
@@ -332,6 +347,56 @@ struct CDO {
     int (*exec)(struct CDO *);
     int (*insert_update)(struct CDO *, const String []);
     int (*select)(struct CDO *, int (*)());
+};
+
+static const char *IMGS_MIMES[] = {
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/bmp",
+    "image/webp",
+    "image/svg+xml",
+    "image/x-icon",
+};
+
+static const char *TEXT_DOCUMENTS_MIMES[] = {
+    "text/html",
+    "text/plain",
+    "text/css",
+    "application/javascript",
+    "application/xml",
+    "application/json",
+    "application/chtml"
+};
+
+static const char *VIDEOS_MIMES[] = {
+    "video/mp4",
+    "video/webm",
+    "video/ogg",
+    "video/x-msvideo",
+    "video/quicktime",
+};
+
+static const char *AUDIO_MIMES[] = {
+    "audio/mpeg",
+    "audio/ogg",
+    "audio/wav",
+    "audio/webm",
+    "audio/midi",
+};
+
+static const char *APPLICATIONS_MIMES[] = {
+    "application/pdf",
+    "application/gzip",
+    "application/zip",
+    "application/octet-stream",
+};
+
+static const char *OTHERS_MIMES[] = {
+    "font/ttf",
+    "font/otf",
+    "font/woff",
+    "font/woff2",
 };
 
 Server servidor;
