@@ -1,7 +1,10 @@
+////////////////////////////////////////////////////////////////
+//Archivo: smtp.h                                             //
+//Este header contiene todas las funciones necesarias         //
+//para trabajar con servidores smtp.                          //
+////////////////////////////////////////////////////////////////
 #ifndef SMTP_H
 #define SMTP_H
-
-//#include "cweb.h"
 
 void handle_client(int client_socket, String name) {
     char buffer[BUFFER_SIZE];

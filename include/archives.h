@@ -1,3 +1,9 @@
+////////////////////////////////////////////////////////////////
+//Archivo: archives.h                                         //
+//Este header tiene todas las funciones relacionada para      //
+//el manejo de archivo tanto de archivos subidos desde una web//
+//hasta archivos descargados desde el servidor.               //
+////////////////////////////////////////////////////////////////
 #ifndef ARCHIVES_H
 #define ARCHIVES_H
 

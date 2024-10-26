@@ -1,3 +1,8 @@
+////////////////////////////////////////////////////////////////
+//Archivo: http.h                                             //
+//Este header contiene todas las funciones necesarias para    //
+//tabajar con peticiones http.                                //
+////////////////////////////////////////////////////////////////
 #ifndef HTTP_H
 #define HTTP_H
 

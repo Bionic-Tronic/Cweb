@@ -1,3 +1,8 @@
+////////////////////////////////////////////////////////////////
+//Archivo: cdo.h                                              //
+//Este header contine todas las funciones relacionadas con    //
+//el manejo de base de datos sqlite.                          //
+////////////////////////////////////////////////////////////////
 #ifndef CDO_H
 #define CDO_H
 

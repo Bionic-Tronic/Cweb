@@ -1,3 +1,8 @@
+////////////////////////////////////////////////////////////////
+//Archivo: cweb.h                                             //
+//Este header contine la incluciones de la librerias          //
+//necesarias incluyendo las creadas propias.                  //
+////////////////////////////////////////////////////////////////
 #ifndef CWEB_H
 #define CWEB_H
 
@@ -27,5 +32,6 @@
 #include "sqlite.h"
 #include "smtp.h"
 #include "cdo.h"
+#include "json.h"
 
 #endif

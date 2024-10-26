@@ -1,3 +1,9 @@
+////////////////////////////////////////////////////////////////
+//Archivo: server.h                                           //
+//Este header contiene todas las funciones necesarias o que   //
+//son del servidor.                                           //
+////////////////////////////////////////////////////////////////
+
 #ifndef SERVER_H
 #define SERVER_H
 
@@ -35,14 +41,14 @@ static void _encrypt(char *message, int shift)
     }
 }
 
-static String load_buffer()
+static char * load_buffer()
 {
     return buffer;
 }
 
 static char *descryptChar(char *txt)
 {
-    String today[42] = {
+    char * today[42] = {
         "%25",       // %
         "%5C",       //espace
         "+",         // espacio
@@ -268,32 +274,6 @@ void concatplus(char *result, const char *format, ...)
     va_end(args);
 }
 
-static int _rebuilt_file(const String fp, const String console, int time)
-{
-    struct stat file_data;
-    if (stat(fp, &file_data) == -1)
-    {
-        perror("cweb ");
-        return ERROR;
-    }
-    time_t last_modified = file_data.st_mtime;
-    usleep(time);
-    if (stat(fp, &file_data) == -1)
-    {
-        perror("cweb ");
-        return ERROR;
-    }
-    time_t new_modified = file_data.st_mtime;
-    if (last_modified != new_modified)
-    {
-        return OK;
-    }
-    else
-    {
-        system(console);
-    }
-}
-
 static int _save_response(const char *namefile)
 {
     char finalFile[100];
@@ -308,23 +288,23 @@ static int _save_response(const char *namefile)
     return OK;
 }
 
-String parseInt(int entero)
+char * parseInt(int entero)
 {
     int len = snprintf(EMPTY, 0, "%d", entero);
-    String str = malloc(len + 1);
+    char * str = malloc(len + 1);
     snprintf(str, len + 1, "%d", entero);
     return str;
 }
 
-String parseFloat(double flotante)
+char * parseFloat(double flotante)
 {
     int len = snprintf(EMPTY, 0, "%.2f", flotante);
-    String str = malloc(len + 1);
+    char * str = malloc(len + 1);
     snprintf(str, len + 1, "%.2f", flotante);
     return str;
 }
 
-int parseStr(String str)
+int parseStr(char * str)
 {
     return atoi(str);
 }
@@ -403,12 +383,12 @@ int search_w(const char *word, const char *texto)
     return ERROR;
 }
 
-int _save(const String fp, const String key, const String value, const String comentarios)
+int _save(const char * fp, const char * key, const char * value, const char * comentarios)
 {
     if (fp == EMPTY)
     {
         fprintf(stderr, "Name file is EMPTY\n");
-        return EMPTY;
+        return ERROR;
     }
     char tmp[100];
     char data[2024];
@@ -450,7 +430,7 @@ int _save(const String fp, const String key, const String value, const String co
     return OK;
 }
 
-String _getValue(const String name, const String key, const String value)
+char * _getValue(const char * name, const char * key, const char * value)
 {
     if (name == EMPTY)
     {
@@ -465,7 +445,7 @@ String _getValue(const String name, const String key, const String value)
     char tmp[100];
     char data[2024];
     char tmp2[100];
-    String result;
+    char * result;
     concatplus(tmp2, "%s=", key);
     concatplus(tmp, "res/%s.dat", name);
     FILE *fp = fopen(tmp, "r");
@@ -488,19 +468,19 @@ String _getValue(const String name, const String key, const String value)
     return result;
 }
 
-String _getDat(const String d)
+char * _getDat(const char * d)
 {
-    if (d == NULL)
+    if (d == EMPTY)
     {
         fprintf(stderr, "Name file is EMPTY\n");
-        return ERROR;
+        return EMPTY;
     }
     char tmp[100];
     char data[2024];
-    String result;
+    char * result;
     concatplus(tmp, "res/%s.dat", d);
     FILE *fp = fopen(tmp, "r");
-    if (fp == NULL)
+    if (fp == EMPTY)
     {
         perror("cweb ");
         return EMPTY;
@@ -510,9 +490,9 @@ String _getDat(const String d)
     return result;
 }
 
-int _quit(const String fp)
+int _quit(const char * fp)
 {
-    if (fp == NULL)
+    if (fp == EMPTY)
     {
         fprintf(stderr, "Name file is EMPTY\n");
         return ERROR;
@@ -553,140 +533,12 @@ int compareExtension(const char *archivo1, const char *archivo2)
     }
 }
 
-static int _registers_url()
-{
-    char urls[2024];
-    int acumulativo_errores = 0, i_ini = 0;
-    ;
-    FILE *fp = fopen("res/pages.urls", "rb");
-    if (fp == EMPTY)
-    {
-        return ERROR;
-    }
-    size_t size = fread(urls, sizeof(char), 2024, fp);
-    String fileTheGet = searchWord(GET_RESPONSE(), "Referer:", ' ');
-    if (fileTheGet == EMPTY)
-    {
-        return ERROR;
-    }
-    String isCExtension = strrchr(fileTheGet, '.c'); //search_w(".c", fileTheGet);
-    if (isCExtension != EMPTY)
-    {
-        for (int i = 1; i < size; i++)
-        {
-            char cat[100];
-            concatplus(cat, "#define URL_%s ", parseInt(i));
-            String result = searchWord(urls, cat, '\n');
-            if (result != EMPTY)
-            {
-                if (strcmp(fileTheGet, result) == 0)
-                {
-                    return OK;
-                }
-                else
-                {
-                    acumulativo_errores++;
-                    i_ini = i;
-                }
-            }
-            else
-            {
-                return ERROR;
-            }
-        }
-        if (acumulativo_errores >= i_ini)
-        {
-            return NOT_FOUND;
-        }
-    }
-    else
-    {
-        return ERROR;
-    }
-    fclose(fp);
-    return OK;
-}
-
 void properties(Properties *p)
 {
     p->save = _save;
     p->delete = _quit;
     p->getValue = _getValue;
     p->getDat = _getDat;
-}
-
-int openServer(Server *server)
-{
-    server->opt = 1;
-    server->addrlen = sizeof(server->address);
-    server->load_buffer = load_buffer;
-    server->decrypt = _decrypt;
-    server->encrypt = _encrypt;
-    server->descryptCharURL = descryptChar;
-    server->saveBuffer = _save_response;
-    server->rebuilt_file = _rebuilt_file;
-    server->registers_url = _registers_url;
-    if ((server->server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-    {
-        return ERROR;
-    }
-    if (setsockopt(server->server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &server->opt, sizeof(server->opt)))
-    {
-        return ERROR;
-    }
-    server->address.sin_family = AF_INET;
-    server->address.sin_addr.s_addr = inet_addr(server->url);
-    server->address.sin_port = htons(server->port);
-    if (bind(server->server_fd, (struct sockaddr *)&server->address, sizeof(server->address)) < 0)
-    {
-        return ERROR;
-    }
-    if (listen(server->server_fd, 3) < 0)
-    {
-        return ERROR;
-    }
-    return OK;
-}
-
-int open_server(Server *server)
-{
-    server->opt = 1;
-    server->addrlen = sizeof(server->address);
-    server->load_buffer = load_buffer;
-    server->decrypt = _decrypt;
-    server->encrypt = _encrypt;
-    server->descryptCharURL = descryptChar;
-    server->saveBuffer = _save_response;
-    server->rebuilt_file = _rebuilt_file;
-    server->registers_url = _registers_url;
-    if ((server->server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-    {
-        return ERROR;
-    }
-    if (setsockopt(server->server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &server->opt, sizeof(server->opt)))
-    {
-        return ERROR;
-    }
-    server->address.sin_family = AF_INET;
-    server->address.sin_addr.s_addr = INADDR_ANY;
-    server->address.sin_port = htons(server->port);
-    if (bind(server->server_fd, (struct sockaddr *)&server->address, sizeof(server->address)) < 0)
-    {
-        return ERROR;
-    }
-    if (listen(server->server_fd, 3) < 0)
-    {
-        return ERROR;
-    }
-    return OK;
-}
-
-void ini_test_server()
-{
-    servidor.port = DEFAULT_PORT;
-    servidor.buffer_file = DEFAULT_BUFFER_FILE;
-    servidor.url = DEFAULT_URL;
-    openServer(&servidor);
 }
 
 int send_email(email *email)
@@ -698,12 +550,12 @@ int send_email(email *email)
     {
         curl_easy_setopt(curl, CURLOPT_URL, email->smtp_url);
         curl_easy_setopt(curl, CURLOPT_MAIL_FROM, email->mail_from);
-        struct curl_slist *recipients = NULL;
+        struct curl_slist *recipients = EMPTY;
         recipients = curl_slist_append(recipients, email->recipient);
         curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
         curl_easy_setopt(curl, CURLOPT_USERNAME, email->smtp_user);
         curl_easy_setopt(curl, CURLOPT_PASSWORD, email->smtp_password);
-        curl_easy_setopt(curl, CURLOPT_READFUNCTION, NULL);
+        curl_easy_setopt(curl, CURLOPT_READFUNCTION, EMPTY);
         curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
         curl_easy_setopt(curl, CURLOPT_READDATA, email->payload_text);
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
@@ -725,7 +577,7 @@ static void _clear_(struct Api_connect *api)
 static int api_connect_callback(void *data, size_t size, size_t nmemb, void *userp)
 {
     FILE *fp = fopen("./res/dataApi.api", "a");
-    if (fp == NULL)
+    if (fp == EMPTY)
     {
         perror("cweb");
         return -1;
@@ -794,7 +646,7 @@ int _simple_post(struct Api_connect *api)
         curl_easy_setopt(api->curl, CURLOPT_POST, 1L);
         curl_easy_setopt(api->curl, CURLOPT_POSTFIELDS, api->post);
         curl_easy_setopt(api->curl, CURLOPT_WRITEFUNCTION, api_connect_callback);
-        struct curl_slist *headers = NULL;
+        struct curl_slist *headers = EMPTY;
         headers = curl_slist_append(headers, api->headers);
         curl_easy_setopt(api->curl, CURLOPT_HTTPHEADER, headers);
         res = curl_easy_perform(api->curl);
@@ -822,6 +674,16 @@ int _simple_post(struct Api_connect *api)
         api->is_error = ERROR;
         return ERROR;
     }
+}
+
+static void getData_ (struct Api_connect * api){
+    FILE * fp = fopen("./res/dataApi.api","r");
+    if(fp == EMPTY){
+        perror("cweb");
+        return;
+    }
+    fread(api->data,sizeof(char), 1024, fp);
+    fclose(fp);
 }
 
 void api_connect(struct Api_connect *api)
@@ -882,7 +744,7 @@ void send_response(int client_socket, const char *header, const char *content_ty
 void send_file_response(int client_socket, const char *header, const char *content_type, const char *file_path)
 {
     FILE *file = fopen(file_path, "rb");
-    if (file == NULL)
+    if (file == EMPTY)
     {
         perror("Error al abrir el archivo ");
         return;
@@ -891,7 +753,7 @@ void send_file_response(int client_socket, const char *header, const char *conte
     size_t file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
     char *file_content = malloc(file_size);
-    if (file_content == NULL)
+    if (file_content == EMPTY)
     {
         perror("Error al asignar memoria");
         fclose(file);
@@ -1084,12 +946,12 @@ static int _accept_conections(struct SERVER *server)
     return OK;
 }
 
-String _load_response()
+char * _load_response()
 {
     return buffer;
 }
 
-int _save_response_server(const String file)
+int _save_response_server(const char * file)
 {
     char res[MAX_VARS];
     concatplus(res, "logs/%s.server", file);

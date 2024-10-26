@@ -1,28 +1,38 @@
+////////////////////////////////////////////////////////////////
+//Archivo: var.h                                              //
+//Este header contiene los tipo de datos, structs, macros y   //
+// enums necesarios para el funcionamiento                    //
+//de la libreria cweb.                                        //
+////////////////////////////////////////////////////////////////
 #ifndef VAR_H
 #define VAR_H
 
 typedef const char * String;
 typedef void (*func)();
+typedef void function;
 
 #define ERROR 500
 #define OK 200
 #define NOT_FOUND 404
-#define EMPTY NULL
+#define EMPTY ((void*)0)
 #define V 200
 #define PAGE String
-#define BUFFER_SIZE 100096
-#define BUFFER_SIZE_3 10096
-#define HTML_LONG 100096
-char buffer[BUFFER_SIZE] = {0};
+#define BUFFER_SIZE 1096
+#define BUFFER_SIZE_3 1096
+#define HTML_LONG 10096
 #define GET_RESPONSE() buffer
-#define DEFAULT_PORT 8080
+#define DEFAULT_PORT 8000
+#define DEFAULT_LISTEN 10
 #define DEFAULT_BUFFER_FILE 6046
 #define DEFAULT_URL "127.0.0.1"
 #define MAX 100
 #define SMTP_TEXT 500
 #define PORT_SMTP 1025
 #define MAX_VARS 1024
+#define MAX_LENGTH_JSON_TEXT 1000
+#define MAX_ARRAY_JSON 100
 
+char buffer[BUFFER_SIZE] = {0};
 char code_html[BUFFER_SIZE_3] = " ";
 char tmp_code_html[BUFFER_SIZE_3] = "<html>";
 int pre = 0;
@@ -312,11 +322,14 @@ struct Api_connect {
     String url;
     String post;
     String headers;
+    String type_data;
+    char data[MAX_VARS];
     int errors, is_error;
     int (*prepare)(struct Api_connect *);
     int (*simple_get)(struct Api_connect *);
     int (*simple_post)(struct Api_connect *);
     void (*clear)(struct Api_connect *);
+    void (*getData)(struct Api_connect *);
 };
 
 typedef struct{
@@ -398,6 +411,29 @@ static const char *OTHERS_MIMES[] = {
     "font/woff",
     "font/woff2",
 };
+
+typedef enum {
+    JSON_STRING,
+    JSON_NUMBER,
+    JSON_OBJECT,
+    JSON_ARRAY,
+    JSON_BOOLEAN,
+    JSON_NULL
+} JsonValueType;
+
+typedef struct {
+    JsonValueType type;
+    union {
+        char string_value[MAX_LENGTH_JSON_TEXT];
+        double number_value;
+        int boolean_value;
+    } value;
+} JsonValue;
+
+typedef struct {
+    JsonValue values[MAX_ARRAY_JSON];
+    int size;
+} JsonArray;
 
 Server servidor;
 

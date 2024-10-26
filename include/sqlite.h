@@ -1,3 +1,8 @@
+////////////////////////////////////////////////////////////////
+//Archivo: sqlite.h                                           //
+//Este header contiene funciones importantes para el manejo   //
+//de bases de datos sqlite intentando serla sencilla de usar. //
+////////////////////////////////////////////////////////////////
 #ifndef SQLITE_H
 #define SQLITE_H
 
