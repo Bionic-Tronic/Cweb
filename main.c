@@ -60,8 +60,8 @@ void server_web (){
     //Se define una variable de tipo SERVER
     struct SERVER server;
     //Se inician el puerto, url y el listen
-    server.port = DEFAULT_PORT;//8080
-    server.url = DEFAULT_URL;//127.0.0.1
+    server.port = DEFAULT_PORT;//8000
+    server.url = DEFAULT_URL;//127.0.0.1 o localhost
     server.listen = DEFAULT_LISTEN;//10
     //Se define una variable de tipo BuildHtml
     BuildHtml page_404;
@@ -78,7 +78,7 @@ void server_web (){
         //Función para aceptar las peticones entrantes. Recive como parametro una variable de tipo sturtc SERVER
         server.accept_conections(&server);
         server.handle_client(&server);
-        //Función para mostrar en consola la respuesta del navegador
+        //Función para mostrar en consola la respuesta o la petición en su defecto del navegador
         puts(GET_RESPONSE());
     }
 }
@@ -93,7 +93,7 @@ void server_smtp () {
     //Se crear una variable de tipo struct smtp
     struct smtp mails;
     //se establece el puerto de escucha. La url por defecto es localhost
-    mails.port = 1025;
+    mails.port = DEFAULT_PORT_SMTP;//1025
     //se inicializa la struct smtp
     Smtp(&mails);
     //se establece el archivo donde se va a guardar los 'correos' recividos. Sin extensión que por defecto y forzado es *.emails 
@@ -134,11 +134,38 @@ void base_data_sqlite () {
     //Se muestra la si hubo errores: 200=OK y 500=ERROR
     printf("Errors = %i\n",cd.is_error);
 }
+/*
+* Función: send_mail();
+* esta función usa la strut mail que se encuentra en la struct smtp
+* para enviar correos y la función `mail(struct smtp * email)`. A esta struct aun le faltan algunas funciones
+* para que sea mas sencillo enviar correo.
+* Nota: La función `mail()` y la mail dentro de struct smtp estan configuradas para el uso de proveedores de 
+* servición smtp y todos las propiedades de mail son obligatorios para enviar los correos.
+*/
+void send_mail (){
+    //Declaración de la variable tipo smtp
+    struct smtp email;
+    //Se establece la url del proveedor del servidor smtp
+    strcpy(email.mail.smtp_url,"localhost:1025");
+    //Se estable el usuario de la cuenta creada en el proveedor SMTP
+    strcpy(email.mail.smtp_user,"localhost");
+    //Se establece la contraceña de la cuenta creada en el proveedor SMTP
+    strcpy(email.mail.smtp_password,"");
+    //Se establece quien envia el correo
+    strcpy(email.mail.mail_from,"example@example.com");
+    //Se establece para quien es el correo
+    strcpy(email.mail.recipient,"example@example.com");
+    //Se establece el texto del correo
+    strcpy(email.mail.payload_text,"Message example");
+    //Se envia el correo
+    mail(&email);
+}
 
 int main (){
     //server_web();
     //server_smtp();
     //base_data_sqlite();
-    api();
+    //api();
+    send_mail();
     return 0;
 }
