@@ -7,7 +7,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-static void _decrypt(char *message, int shift)
+  void _decrypt(char *message, int shift)
 {
     char *ptr = message;
     while (*ptr != '\0')
@@ -24,7 +24,7 @@ static void _decrypt(char *message, int shift)
     }
 }
 
-static void _encrypt(char *message, int shift)
+  void _encrypt(char *message, int shift)
 {
     char *ptr = message;
     while (*ptr != '\0')
@@ -41,12 +41,12 @@ static void _encrypt(char *message, int shift)
     }
 }
 
-static char * load_buffer()
+  char * load_buffer()
 {
     return buffer;
 }
 
-static char *descryptChar(char *txt)
+char *descryptChar(char *txt)
 {
     char * today[42] = {
         "%25",       // %
@@ -274,7 +274,7 @@ void concatplus(char *result, const char *format, ...)
     va_end(args);
 }
 
-static int _save_response(const char *namefile)
+  int _save_response(const char *namefile)
 {
     char finalFile[100];
     concatplus(finalFile, "res/%s.log", namefile);
@@ -510,7 +510,7 @@ int _quit(const char * fp)
     }
 }
 
-static const char *getExtension(const char *nombreArchivo)
+  const char *getExtension(const char *nombreArchivo)
 {
     const char *punto = strrchr(nombreArchivo, '.');
     if (!punto || punto == nombreArchivo)
@@ -541,23 +541,23 @@ void properties(Properties *p)
     p->getDat = _getDat;
 }
 
-int send_email(email *email)
+int mail(struct smtp * email)
 {
     CURL *curl;
     CURLcode res = CURLE_OK;
     curl = curl_easy_init();
     if (curl)
     {
-        curl_easy_setopt(curl, CURLOPT_URL, email->smtp_url);
-        curl_easy_setopt(curl, CURLOPT_MAIL_FROM, email->mail_from);
+        curl_easy_setopt(curl, CURLOPT_URL, email->mail.smtp_url);
+        curl_easy_setopt(curl, CURLOPT_MAIL_FROM, email->mail.mail_from);
         struct curl_slist *recipients = EMPTY;
-        recipients = curl_slist_append(recipients, email->recipient);
+        recipients = curl_slist_append(recipients, email->mail.recipient);
         curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
-        curl_easy_setopt(curl, CURLOPT_USERNAME, email->smtp_user);
-        curl_easy_setopt(curl, CURLOPT_PASSWORD, email->smtp_password);
+        curl_easy_setopt(curl, CURLOPT_USERNAME, email->mail.smtp_user);
+        curl_easy_setopt(curl, CURLOPT_PASSWORD, email->mail.smtp_password);
         curl_easy_setopt(curl, CURLOPT_READFUNCTION, EMPTY);
         curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-        curl_easy_setopt(curl, CURLOPT_READDATA, email->payload_text);
+        curl_easy_setopt(curl, CURLOPT_READDATA, email->mail.payload_text);
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
         res = curl_easy_perform(curl);
         if (res != CURLE_OK)
@@ -569,12 +569,12 @@ int send_email(email *email)
     return (int)res;
 }
 
-static void _clear_(struct Api_connect *api)
+  void _clear_(struct Api_connect *api)
 {
     curl_global_cleanup();
 }
 
-static int api_connect_callback(void *data, size_t size, size_t nmemb, void *userp)
+  int api_connect_callback(void *data, size_t size, size_t nmemb, void *userp)
 {
     FILE *fp = fopen("./res/dataApi.api", "a");
     if (fp == EMPTY)
@@ -588,7 +588,7 @@ static int api_connect_callback(void *data, size_t size, size_t nmemb, void *use
     return realsize;
 }
 
-static int _simple_get(struct Api_connect *api)
+  int _simple_get(struct Api_connect *api)
 {
     if (api->is_error == OK)
     {
@@ -621,7 +621,7 @@ static int _simple_get(struct Api_connect *api)
     }
 }
 
-static int _prepare(struct Api_connect *api)
+  int _prepare(struct Api_connect *api)
 {
     curl_global_init(CURL_GLOBAL_DEFAULT);
     api->curl = curl_easy_init();
@@ -676,7 +676,7 @@ int _simple_post(struct Api_connect *api)
     }
 }
 
-static void getData_ (struct Api_connect * api){
+  void getData_ (struct Api_connect * api){
     FILE * fp = fopen("./res/dataApi.api","r");
     if(fp == EMPTY){
         perror("cweb");
@@ -699,7 +699,7 @@ void api_connect(struct Api_connect *api)
     api->simple_post = _simple_post;
 }
 
-static char *get_name_get_(const char *palabra, char *texto, char caracterLimite)
+  char *get_name_get_(const char *palabra, char *texto, char caracterLimite)
 {
     char true_palabra[1000];
     concatplus(true_palabra, "%s", palabra);
@@ -765,7 +765,7 @@ void send_file_response(int client_socket, const char *header, const char *conte
     free(file_content);
 }
 
-static int _handle_client(struct SERVER *server)
+  int _handle_client(struct SERVER *server)
 {
     char buffer[BUFFER_SIZE];
     int bytes_read;
@@ -922,7 +922,7 @@ hereIfError:
     return OK;
 }
 
-static int _accept_conections(struct SERVER *server)
+  int _accept_conections(struct SERVER *server)
 {
     server->client_addr_len = sizeof(server->client_addr);
     server->client_socket = accept(server->server_socket, (struct sockaddr *)&server->client_addr, &server->client_addr_len);

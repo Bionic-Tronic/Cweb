@@ -86,7 +86,7 @@ static int isset_post (const char *word){
 	return ERROR;
 }
 
-int _read_img(Server *s){
+int _read_img(struct SERVER *s){
 	FILE *image;
 	long img_size;
 	char *buffer;
@@ -119,7 +119,7 @@ int _read_img(Server *s){
 	return OK;
 }
 
-int _read_video(Server *s){
+int _read_video(struct SERVER *s){
 	FILE *image;
 	long img_size;
 	char *buffer;

@@ -1493,13 +1493,13 @@ static void _text(const char *cap)
     cat_str(tmp1, tmp_code_html, code_html);
 }
 
-static int _send_html(Server *Server)
+static int _send_html(struct SERVER *Server)
 {
     if (listen(Server->server_fd, 3) < 0)
     {
         return ERROR;
     }
-    if ((Server->new_socket = accept(Server->server_fd, (struct sockaddr *)&Server->address, (socklen_t *)&Server->addrlen)) < 0)
+    if ((Server->new_socket = accept(Server->server_fd, (struct sockaddr *)&Server->addrlen, (socklen_t *)&Server->addrlen)) < 0)
     {
         return ERROR;
     }
@@ -1570,7 +1570,7 @@ void _show_html_console()
     printf("HTML send(length: %ld):\n%s\n", strlen(code_html), code_html);
 }
 
-static void _script_src(const char *archivo, Server *s, int op)
+static void _script_src(const char *archivo, struct SERVER *s, int op)
 {
     char archivo1[HTML_LONG];
     char contentJs[s->buffer_file];
@@ -1624,10 +1624,10 @@ static void _load_extern_html(const char *code)
     cat_str(tmp1, tmp_code_html, code_html);
 }
 
-static void _style_src(const char *archivo, Server *s, int op)
+static void _style_src(const char *archivo, struct SERVER *s, int op)
 {
     char archivo1[HTML_LONG];
-    char contentJs[s->buffer_file];
+    char contentJs[DEFAULT_BUFFER_FILE];
     char tmp1[HTML_LONG];
     concatplus(archivo1, "css/%s.css", archivo);
     FILE *fp = fopen(archivo1, "r");

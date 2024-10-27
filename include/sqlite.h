@@ -6,7 +6,7 @@
 #ifndef SQLITE_H
 #define SQLITE_H
 
-int _execute_sqlite_ (Server * server){
+int _execute_sqlite_ (struct SERVER * server){
     sqlite3 *db;
 	char *errMsg = 0;
 	char *msgErrorW[BUFFER_SIZE];
@@ -19,7 +19,7 @@ int _execute_sqlite_ (Server * server){
 		strError = "Error con el server";
 		return ERROR;
 	}
-	if ((server->new_socket = accept(server->server_fd, (struct sockaddr *)&server->address, (socklen_t *)&server->addrlen)) < 0)
+	if ((server->new_socket = accept(server->server_fd, (struct sockaddr *)&server->addrlen, (socklen_t *)&server->addrlen)) < 0)
 	{
 		isAtError = 1;
 		strError = "Error con el server";
@@ -43,7 +43,7 @@ int _execute_sqlite_ (Server * server){
 	return OK;
 }
 
-int _execute_sqlite (Server * server){
+int _execute_sqlite (struct SERVER * server){
     sqlite3 *db;
 	char *errMsg = 0;
 	char *msgErrorW[BUFFER_SIZE];
@@ -54,7 +54,7 @@ int _execute_sqlite (Server * server){
 	{
 		return ERROR;
 	}
-	if ((server->new_socket = accept(server->server_fd, (struct sockaddr *)&server->address, (socklen_t *)&server->addrlen)) < 0){
+	if ((server->new_socket = accept(server->server_fd, (struct sockaddr *)&server->addrlen, (socklen_t *)&server->addrlen)) < 0){
 		return ERROR;
 	}
 	if (result != SQLITE_OK){

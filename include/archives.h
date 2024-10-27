@@ -46,7 +46,7 @@ String _getType(){
 	return EMPTY;
 }
 
-static int _prepare_file(Server *s){
+static int _prepare_file(struct SERVER *s){
 	end_of_header = strstr(buffer, "\r\n\r\n");
 	if (end_of_header != EMPTY){
 		body_offset = end_of_header + 4 - buffer;
@@ -57,7 +57,7 @@ static int _prepare_file(Server *s){
 	else{
 		puts("cweb: not have content file");
 		pre = 0;
-		return NOT_FOUND;
+		return ERROR;
 	}
 }
 
@@ -73,7 +73,7 @@ static int _upload_file(const String s){
 		else{
 			perror("cweb ");
 			pre = 0;
-			return NOT_FOUND;
+			return ERROR;
 		}
 	}
 	else{
@@ -92,7 +92,7 @@ static void _resetStructData(){
 	memset(end_of_header, 0, sizeof(end_of_header));
 }
 
-static int _permission_download_file(Server *Server){
+static int _permission_download_file(struct SERVER * Server){
 	String fileName = searchInResponse("GET /", ' ');
 	FILE *fp = fopen(fileName, "rb");
 	size_t bytes_read;
@@ -100,7 +100,7 @@ static int _permission_download_file(Server *Server){
 	concatplus(r_headers_1, "HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename=\"%s\" \r\nContent-Type: text/plain\r\n\r\n", fileName);
 	if (fp == EMPTY){
 		perror("cweb ");
-		return NOT_FOUND;
+		return ERROR;
 	}
 	else{
 		send(Server->client_socket, r_headers_1, strlen(r_headers_1), 0);
@@ -111,16 +111,16 @@ static int _permission_download_file(Server *Server){
 		return OK;
 	}
 	fclose(fp);
-	return NOT_FOUND;
+	return ERROR;
 }
 
-static int _send_file(Server *s, const char *filename){
+static int _send_file(struct SERVER *s, const char *filename){
 	String filename2 = searchInResponse("GET /", ' ');
 	if (strcmp(filename2, filename) == 0){
 		FILE *file = fopen(filename, "rb");
 		if (file == EMPTY){
 			fprintf(stderr, "Error opening file\n");
-			return NOT_FOUND;
+			return ERROR;
 		}
 		fseek(file, 0, SEEK_END);
 		long file_size = ftell(file);
@@ -141,7 +141,7 @@ static int _send_file(Server *s, const char *filename){
 		free(file_contents);
 		return OK;
 	}
-	return NOT_FOUND;
+	return ERROR;
 }
 
 static void _create_file (const String nombre, const String data, const String r){
