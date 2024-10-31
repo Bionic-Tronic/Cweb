@@ -46,7 +46,7 @@ int isAtError = 0;
 String strError = "";
 int peticiones = 0;
 
-enum{
+typedef enum{
     false,
     true
 } boolean;
@@ -236,6 +236,481 @@ typedef struct{
     void (*tr_c)();
     void (*load_extern_html)(const String);
     String (*get_code_html)();
+    struct{
+    size_t length;
+    char code[HTML_LONG];
+    struct{
+        String text;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    } h1;
+    struct{
+        String text;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    } h2;
+    struct{
+        String text;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    } h3;
+    struct{
+        String text;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    } h4;
+    struct{
+        String text;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    } h5;
+    struct{
+        String text;
+        String attributes;
+        boolean add;
+        String class;
+        String id;
+    } h6;
+    struct{
+        String text;
+        String attributes;
+        boolean add;
+        String class;
+        String id;
+    } p;
+    struct{
+        boolean add;
+    } br;
+    struct{
+        String code;
+        String attributes;
+        String src;
+        boolean add;
+        String class;
+        String id;
+    } script;
+    struct{
+        String code;
+        String attributes;
+        String src;
+        String class;
+        String id;
+        boolean add;
+    }style;
+    struct{
+        String attributes;
+        String class;
+        String id;
+        String src;
+        boolean add;
+    } img;
+    struct{
+        String href;
+        String text;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    }a;
+    struct{
+        String text;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    }i;
+    struct{
+        String text;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    }e;
+    struct{
+        String text;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    }span;
+    struct{
+        String src;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    }video;
+    struct{
+        String src;
+        String attributes;
+        String class;
+        String id;
+        boolean add;
+    }audio;
+    struct{
+        boolean is_open;
+        boolean add;
+    }html;
+    struct{
+        boolean is_open;
+        boolean add;
+    }center;
+    struct{
+        boolean add;
+        String rel;
+        String href;
+        String hreflang;
+        String class;
+        String id;
+        String attributes;
+    }link;
+    struct{
+        String type;
+        String name;
+        String value;
+        String placeholder;
+        String class;
+        String id;
+        boolean add;
+    }input;
+    struct{
+        String class;
+        String id;
+        String attributes;
+        String text;
+        boolean add;
+    }b;
+    struct{
+        String class;
+        String id;
+        String attributes;
+        String text;
+        boolean add;
+    }em;
+    struct{
+        boolean add;
+        String attributes;
+    }meta;
+    struct{
+        String text;
+        String attributes;
+        boolean add;
+    }button;
+    struct{
+        String text;
+        String class;
+        String id;
+        String attributes;
+        boolean add;
+    }label;
+    struct{
+        boolean add;
+        String atributes;
+        boolean is_open;
+        String class;
+        String id;
+    }div;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }body;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }head;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }header;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }main;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }section;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }article;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+        String name;
+    }select;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+        String value;
+    }option;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+        String text;
+    }footer;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+        String action;
+        String method;
+        String encrypt;
+    }form;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }aside;
+    struct{
+        boolean add;
+    }hr;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }pre;
+    struct{
+        boolean add;
+        String attributes;
+        String class;
+        String id;
+        String name;
+        String cols;
+        String rows;
+    }textarea;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }blockquote;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }ol;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }ul;
+    struct{
+        boolean add;
+        String attributes;
+        String class;
+        String id;
+        String text;
+    }li;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }dl;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }dt;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }dd;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }figure;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }small;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }cite;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }sub;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }sup;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }mark;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }iframe;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }embed;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }table;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }tbody;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }thead;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }tfoot;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+        String text_td;
+        String text;
+        struct{
+            boolean add;
+            String attributes;
+            boolean is_open;
+            String class;
+            String id;
+        }td;
+    }tr;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }td;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }th;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }dialog;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }caption;
+    struct{
+        boolean add;
+        String attributes;
+        boolean is_open;
+        String class;
+        String id;
+    }nav;
+    struct{
+        boolean add;
+        String text;
+    }text;
+}HTML;
 } BuildHtml;
 
 typedef struct{
@@ -324,8 +799,7 @@ struct CDO{
     int (*select)(struct CDO *, int (*)());
 };
 
-typedef enum
-{
+typedef enum{
     JSON_STRING,
     JSON_NUMBER,
     JSON_OBJECT,
@@ -334,8 +808,7 @@ typedef enum
     JSON_NULL
 } JsonValueType;
 
-typedef struct
-{
+typedef struct{
     JsonValueType type;
     union {
         char string_value[MAX_LENGTH_JSON_TEXT];
@@ -344,8 +817,7 @@ typedef struct
     } value;
 } JsonValue;
 
-typedef struct
-{
+typedef struct{
     JsonValue values[MAX_ARRAY_JSON];
     int size;
 } JsonArray;
