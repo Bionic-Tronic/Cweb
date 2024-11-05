@@ -64,15 +64,31 @@ void server_web (){
     server.url = DEFAULT_URL;//127.0.0.1 o localhost
     server.listen = DEFAULT_LISTEN;//10
     //Se define una variable de tipo BuildHtml
-    BuildHtml page_404;
+    BuildHtml page_404, index_page;
     //Se inicializa la variable de tipo BuildHtml
     buildHtml(&page_404);
+    buildHtml(&index_page);
     //Se usa la función anteriormente creada para crear la pagina de error 404
-    error_404_page(&page_404);
+    //error_404_page(&page_404);
+    index_page.html_o("lang=\"es\"");
+    index_page.head_o(EMPTY);
+    index_page.head_c();
+    index_page.body_c(EMPTY);
+    index_page.center_o();
+    index_page.h1(EMPTY,"Ciao! questa é la mia pagina fabbricata con il lenguggio C!");
+    index_page.center_c();
+    index_page.body_c();
+    index_page.html_c();
     //Se inicializa la propiedad .response_code_404 con la pagina creada en la función error_404
-    server.response_code_404 = page_404.get_code_html();
+    server.response_code_404 = "<h1>Error 404</h1>"/*page_404.get_code_html()*/;
     //Se prepara el servidor o se pone en modo escucha de peticiones
     prepare_SERVER(&server);
+    server.pages_actives = 1;
+    server.simple_pages = true;
+    server.pages[0] = "index";
+    server.pages[1] = "login";
+    server.pages[2] = "register.c";
+    server.code_pages[0] = index_page.get_code_html();
     //Se crea un bucle infinito para peticiones
     while(true){
         //Función para aceptar las peticones entrantes. Recive como parametro una variable de tipo sturtc SERVER
@@ -160,12 +176,53 @@ void send_mail (){
     //Se envia el correo
     mail(&email);
 }
+/*
+* Función: create_html_page();
+* Esta función crea una pagina html con la struct BuildHtml pero sin la necesidad de funciones
+* Lo cual tiene la ventaja de poder crear paginas un poco más facil y sin problemas de confución
+* de codigos html al usar las funciones de la struct BuildHtml ya que usan variables globales
+* para crear las paginas html.
+*/
+void create_html_page (){
+    BuildHtml html;
+    html.HTML.h1.text = "etiqueta h1";
+    html.HTML.h1.attributes = EMPTY;
+    html.HTML.h1.add = true;
+    html.HTML.h2.text = "etiqueta h2";
+    html.HTML.h2.attributes = "class=\"color-azul\"";
+    html.HTML.h2.add = true;
+    html.HTML.b.text = "Texto";
+    html.HTML.b.class = "a";
+    html.HTML.b.id = "t";
+    html.HTML.b.attributes = "referer";
+    html.HTML.b.add = true;
+    create_html(&html);
+    html.HTML.h1.text = "otro h1";
+    html.HTML.h1.attributes = EMPTY;
+    html.HTML.h1.id = EMPTY;
+    html.HTML.h1.class = EMPTY;
+    html.HTML.h1.add = true;
+    html.HTML.select.class = EMPTY;
+    html.HTML.select.id = EMPTY;
+    html.HTML.select.is_open = true;
+    html.HTML.select.attributes = EMPTY;
+    html.HTML.select.name = "paises";
+    html.HTML.select.option.add = true;
+    html.HTML.select.option.class = "";
+    html.HTML.select.option.id = "";
+    html.HTML.select.option.text = "Rusia";
+    html.HTML.select.option.value = "ru";
+    html.HTML.select.add = true;
+    create_html(&html);
+    printf("Codigo html:\n%s",html.HTML.code);
+}
 
 int main (){
     //server_web();
     //server_smtp();
     //base_data_sqlite();
     //api();
-    send_mail();
+    //send_mail();
+    create_html_page();
     return 0;
 }
