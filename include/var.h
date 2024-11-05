@@ -18,7 +18,7 @@ typedef void function;
 #define BUFFER_SIZE 1096
 #define HTML_LONG 10096
 #define GET_RESPONSE() buffer
-#define DEFAULT_PORT 8000
+#define DEFAULT_PORT 8090
 #define DEFAULT_LISTEN 10
 #define DEFAULT_BUFFER_FILE 6046
 #define DEFAULT_URL "127.0.0.1"
@@ -62,6 +62,10 @@ struct SERVER{
     int (*accept_conections)(struct SERVER *);
     String (*load_response)();
     int (*save_response_server)(const String);
+    String pages[MAX];
+    String code_pages[MAX];
+    boolean simple_pages;
+    int pages_actives;
 };
 
 struct smtp{
@@ -337,11 +341,11 @@ typedef struct{
         boolean add;
     }e;
     struct{
-        String text;
         String attributes;
         String class;
         String id;
         boolean add;
+        boolean is_open;
     }span;
     struct{
         String src;
@@ -360,6 +364,8 @@ typedef struct{
     struct{
         boolean is_open;
         boolean add;
+        String lang;
+        String attributes;
     }html;
     struct{
         boolean is_open;
@@ -369,9 +375,6 @@ typedef struct{
         boolean add;
         String rel;
         String href;
-        String hreflang;
-        String class;
-        String id;
         String attributes;
     }link;
     struct{
@@ -382,6 +385,8 @@ typedef struct{
         String class;
         String id;
         boolean add;
+        boolean required;
+        String attributes;
     }input;
     struct{
         String class;
@@ -405,6 +410,8 @@ typedef struct{
         String text;
         String attributes;
         boolean add;
+        String class;
+        String id;
     }button;
     struct{
         String text;
@@ -415,7 +422,7 @@ typedef struct{
     }label;
     struct{
         boolean add;
-        String atributes;
+        String attributes;
         boolean is_open;
         String class;
         String id;
@@ -469,22 +476,29 @@ typedef struct{
         String class;
         String id;
         String name;
+        struct{
+            boolean add;
+            String text;
+            String class;
+            String id;
+            String value;
+        }option;
     }select;
     struct{
         boolean add;
         String attributes;
-        boolean is_open;
         String class;
         String id;
         String value;
+        String text;
     }option;
     struct{
         boolean add;
         String attributes;
-        boolean is_open;
         String class;
         String id;
         String text;
+        boolean is_open;
     }footer;
     struct{
         boolean add;
