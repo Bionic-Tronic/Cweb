@@ -6,9 +6,6 @@
 #ifndef HTML_H
 #define HTML_H
 
-//#include "cweb.hh"
-//#include "cweb.h"
-
 void cat_str(const char *texto1, const char *texto2, char *resultado){
     strcpy(resultado, texto1);
     strcat(resultado, texto2);
