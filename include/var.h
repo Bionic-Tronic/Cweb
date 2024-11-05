@@ -18,7 +18,7 @@ typedef void function;
 #define BUFFER_SIZE 1096
 #define HTML_LONG 10096
 #define GET_RESPONSE() buffer
-#define DEFAULT_PORT 8090
+#define DEFAULT_PORT 8000
 #define DEFAULT_LISTEN 10
 #define DEFAULT_BUFFER_FILE 6046
 #define DEFAULT_URL "127.0.0.1"
@@ -241,7 +241,6 @@ typedef struct{
     void (*load_extern_html)(const String);
     String (*get_code_html)();
     struct{
-    size_t length;
     char code[HTML_LONG];
     struct{
         String text;
@@ -884,5 +883,4 @@ static const char *OTHERS_MIMES[] = {
     "font/woff",
     "font/woff2",
 };
-
 #endif
