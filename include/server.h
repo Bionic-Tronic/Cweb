@@ -1,414 +1,139 @@
-////////////////////////////////////////////////////////////////
-//Archivo: server.h                                           //
-//Este header contiene todas las funciones necesarias o que   //
-//son del servidor.                                           //
-////////////////////////////////////////////////////////////////
-
 #ifndef SERVER_H
 #define SERVER_H
 
-void _decrypt(char *message, int shift)
-{
-    char *ptr = message;
-    while (*ptr != '\0')
-    {
-        if (*ptr >= 'a' && *ptr <= 'z')
-        {
-            *ptr = (*ptr - 'a' - shift + 26) % 26 + 'a';
-        }
-        else if (*ptr >= 'A' && *ptr <= 'Z')
-        {
-            *ptr = (*ptr - 'A' - shift + 26) % 26 + 'A';
-        }
-        ptr++;
-    }
-}
+#define MAX_URLS 1000
+#define DEFAULT_PORT 8080
+#define DEFAULT_LISTEN 10
+#define DEFAULT_BUFFER_FILE 6046
+#define DEFAULT_URL "127.0.0.1"
+#define BUFFER_SIZE 1096
+#define MAX 1024
 
-void _encrypt(char *message, int shift)
-{
-    char *ptr = message;
-    while (*ptr != '\0')
-    {
-        if (*ptr >= 'a' && *ptr <= 'z')
-        {
-            *ptr = (*ptr - 'a' + shift) % 26 + 'a';
-        }
-        else if (*ptr >= 'A' && *ptr <= 'Z')
-        {
-            *ptr = (*ptr - 'A' + shift) % 26 + 'A';
-        }
-        ptr++;
-    }
-}
+bool show_errors = false;
 
-char *load_buffer(){
-    return buffer;
-}
+char buffer[BUFFER_SIZE] = {0};
 
-void concatplus(char *result, const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    va_list args_copy;
-    va_copy(args_copy, args);
-    int length = vsnprintf(EMPTY, 0, format, args_copy);
-    va_end(args_copy);
-    vsnprintf(result, length + 1, format, args);
-    va_end(args);
-}
+#define GET_RESPONSE() buffer
 
-int save_response(const char *namefile){
-    char finalFile[100];
-    concatplus(finalFile, "res/%s.log", namefile);
-    FILE *fp = fopen(finalFile, "a");
-    if (fp == EMPTY)
-    {
+typedef struct {
+    int addrlen;
+    int server_fd, new_socket, valread;
+    int server_socket, client_socket, errors, is_error, port, listen, buffer_file;
+    string url, response_code_html, response_code_404;
+    struct sockaddr_in server_addr, client_addr;
+    socklen_t client_addr_len;
+    string pages[MAX_URLS];
+    string code_pages[MAX_URLS];
+    bool simple_pages;
+    int pages_actives;
+} server;
+
+String IMGS_MIMES[] = {
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/bmp",
+    "image/webp",
+    "image/svg+xml",
+    "image/x-icon",
+};
+
+String TEXT_DOCUMENTS_MIMES[] = {
+    "text/html",
+    "text/plain",
+    "text/css",
+    "application/javascript",
+    "application/xml",
+    "application/json",
+    "application/chtml"};
+
+String VIDEOS_MIMES[] = {
+    "video/mp4",
+    "video/webm",
+    "video/ogg",
+    "video/x-msvideo",
+    "video/quicktime",
+};
+
+String AUDIO_MIMES[] = {
+    "audio/mpeg",
+    "audio/ogg",
+    "audio/wav",
+    "audio/webm",
+    "audio/midi",
+};
+
+String APPLICATIONS_MIMES[] = {
+    "application/pdf",
+    "application/gzip",
+    "application/zip",
+    "application/octet-stream",
+};
+
+String OTHERS_MIMES[] = {
+    "font/ttf",
+    "font/otf",
+    "font/woff",
+    "font/woff2",
+};
+
+int open_server (server * server){
+    server->server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (server->server_socket < 0){
+        if(show_errors == true)
+           perror("cweb");
         return ERROR;
     }
-    fprintf(fp, "%s", GET_RESPONSE());
+    server->server_addr.sin_family = AF_INET;
+    server->server_addr.sin_addr.s_addr = INADDR_ANY;
+    server->server_addr.sin_port = htons(server->port);
+    if (bind(server->server_socket, (struct sockaddr *)&server->server_addr, sizeof(server->server_addr)) < 0){
+        if(show_errors == true)
+           perror("cweb");
+        close(server->client_socket);
+        return ERROR;
+    }
+    if (listen(server->server_socket, server->listen) < 0){
+        if(show_errors == true)
+           perror("cweb");
+        close(server->client_socket);
+        return ERROR;
+    }
+    server->is_error = OK;
+    return OK;
+}
+
+int save_log (){
+    FILE *fp = fopen("logs/server.log", "a");
+    if (fp == EMPTY){
+        if(show_errors == true)
+           perror("cweb ");
+        return ERROR;
+    }
+    fprintf(fp, "\n%s\n", buffer);
     fclose(fp);
     return OK;
 }
 
-char *parseInt(int entero){
-    int len = snprintf(EMPTY, 0, "%d", entero);
-    char *str = malloc(len + 1);
-    snprintf(str, len + 1, "%d", entero);
-    return str;
-}
-
-char *parseFloat(double flotante){
-    int len = snprintf(EMPTY, 0, "%.2f", flotante);
-    char *str = malloc(len + 1);
-    snprintf(str, len + 1, "%.2f", flotante);
-    return str;
-}
-
-int parseStr(char *str){
-    return atoi(str);
-}
-
-char *searchInResponse(const char *palabra, char caracterLimite){
-    char *texto = GET_RESPONSE();
-    char *encontrado = strstr(texto, palabra);
-    if (encontrado != EMPTY){
-        size_t posicionFinal = encontrado - texto + strlen(palabra);
-        const char *limite = strchr(texto + posicionFinal, caracterLimite);
-        if (limite != EMPTY){
-            size_t longitud = limite - (texto + posicionFinal);
-            char *subcadena = (char *)malloc(longitud + 1);
-            strncpy(subcadena, texto + posicionFinal, longitud);
-            subcadena[longitud] = '\0';
-            return subcadena;
-        }
-        else
-            return EMPTY;
-    }
-    else
-        return EMPTY;
-}
-
-char *searchWord(const char *texto, const char *palabra, char caracterLimite){
-    char *encontrado = strstr(texto, palabra);
-    if (encontrado != EMPTY){
-        size_t posicionFinal = encontrado - texto + strlen(palabra);
-        const char *limite = strchr(texto + posicionFinal, caracterLimite);
-        if (limite != EMPTY){
-            size_t longitud = limite - (texto + posicionFinal);
-            char *subcadena = (char *)malloc(longitud + 1);
-            strncpy(subcadena, texto + posicionFinal, longitud);
-            subcadena[longitud] = '\0';
-            return subcadena;
-        }
-        else
-            return EMPTY;
-    }
-    else
-        return EMPTY;
-}
-
-int search_w(const char *word, const char *texto){
-    char *text_copy = strdup(word);
-    if (text_copy == EMPTY)
-        return ERROR;
-    char *line = strtok(text_copy, "\n");
-    while (line != EMPTY){
-        if (strstr(line, texto) != EMPTY){
-            free(text_copy);
-            return OK;
-        }
-        line = strtok(EMPTY, "\n");
-    }
-    free(text_copy);
-    return ERROR;
-}
-
-int _save(const char *fp, const char *key, const char *value, const char *comentarios){
-    if (fp == EMPTY){
-        fprintf(stderr, "Name file is EMPTY\n");
+int accept_conections (server * server){
+    server->client_addr_len = sizeof(server->client_addr);
+    server->client_socket = accept(server->server_socket, (struct sockaddr *)&server->client_addr, &server->client_addr_len);
+    if (server->client_socket < 0){
+        if(show_errors == true)
+           perror("cweb");
+        close(server->client_socket);
         return ERROR;
     }
-    char tmp[100];
-    char data[2024];
-    concatplus(tmp, "res/%s.dat", fp);
-    FILE *f = fopen(tmp, "a"), *f2 = fopen(tmp, "r");
-    if (f == EMPTY || f2 == EMPTY){
-        perror("cwebError ");
-        fclose(f2);
-        fclose(f);
-        return ERROR;
-    }
-    if (key == EMPTY || value == EMPTY){
-        fprintf(stderr, "Key or Value is EMPTY\n");
-        fclose(f2);
-        fclose(f);
-        return ERROR;
-    }
-    fread(data, sizeof(char), 2024, f2);
-    int res = search_w(data, key);
-    if (res == OK){
-        fprintf(stderr, "Key not exists\n");
-        fclose(f2);
-        fclose(f);
-        return ERROR;
-    }
-    if (comentarios == EMPTY)
-        fprintf(f, "%s=%s\n", key, value);
-    else
-        fprintf(f, "/*%s*/\n%s=%s\n", comentarios, key, value);
-    fclose(f2);
-    fclose(f);
+    server->is_error = OK;
     return OK;
 }
 
-char *_getValue(const char *name, const char *key, const char *value){
-    if (name == EMPTY){
-        fprintf(stderr, "Name file is EMPTY\n");
-        return EMPTY;
-    }
-    if (key == EMPTY){
-        fprintf(stderr, "Key is EMPTY\n");
-        return EMPTY;
-    }
-    char tmp[100];
-    char data[2024];
-    char tmp2[100];
-    char *result;
-    concatplus(tmp2, "%s=", key);
-    concatplus(tmp, "res/%s.dat", name);
-    FILE *fp = fopen(tmp, "r");
-    if (fp == EMPTY){
-        perror("cwebError ");
-        return EMPTY;
-    }
-    fread(data, sizeof(char), 2024, fp);
-    result = searchWord(data, tmp2, '\n');
-    if (strcmp(result, "") == 0)
-        result = value;
-    if (strcmp(result, " ") == 0)
-        result = value;
-    fclose(fp);
-    return result;
-}
-
-char *_getDat(const char *d){
-    if (d == EMPTY){
-        fprintf(stderr, "Name file is EMPTY\n");
-        return EMPTY;
-    }
-    char tmp[100];
-    char data[2024];
-    char *result;
-    concatplus(tmp, "res/%s.dat", d);
-    FILE *fp = fopen(tmp, "r");
-    if (fp == EMPTY){
-        perror("cweb ");
-        return EMPTY;
-    }
-    fread(data, sizeof(char), 2024, fp);
-    result = data;
-    return result;
-}
-
-int _quit(const char *fp){
-    if (fp == EMPTY){
-        fprintf(stderr, "Name file is EMPTY\n");
-        return ERROR;
-    }
-    char tmp[100];
-    concatplus(tmp, "res/%s.dat", fp);
-    if (remove(tmp) == -1){
-        perror("cweb ");
-        return ERROR;
-    }
-    return OK;
-}
-
-const char *getExtension(const char *nombreArchivo){
-    const char *punto = strrchr(nombreArchivo, '.');
-    if (!punto || punto == nombreArchivo)
-        return "";
-    return punto + 1;
-}
-
-int compareExtension(const char *archivo1, const char *archivo2){
-    const char *extension1 = getExtension(archivo1);
-    const char *extension2 = getExtension(archivo2);
-    if (strcmp(extension1, extension2) == 0)
-        return OK;
-    return ERROR;
-}
-
-void properties(Properties *p){
-    p->save = _save;
-    p->delete = _quit;
-    p->getValue = _getValue;
-    p->getDat = _getDat;
-}
-
-int mail(struct smtp *email){
-    CURL *curl;
-    CURLcode res = CURLE_OK;
-    curl = curl_easy_init();
-    if (curl){
-        curl_easy_setopt(curl, CURLOPT_URL, email->mail.smtp_url);
-        curl_easy_setopt(curl, CURLOPT_MAIL_FROM, email->mail.mail_from);
-        struct curl_slist *recipients = EMPTY;
-        recipients = curl_slist_append(recipients, email->mail.recipient);
-        curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
-        curl_easy_setopt(curl, CURLOPT_USERNAME, email->mail.smtp_user);
-        curl_easy_setopt(curl, CURLOPT_PASSWORD, email->mail.smtp_password);
-        curl_easy_setopt(curl, CURLOPT_READFUNCTION, EMPTY);
-        curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-        curl_easy_setopt(curl, CURLOPT_READDATA, email->mail.payload_text);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-        res = curl_easy_perform(curl);
-        if (res != CURLE_OK)
-            fprintf(stderr, "%s\n", curl_easy_strerror(res));
-
-        curl_slist_free_all(recipients);
-        curl_easy_cleanup(curl);
-    }
-    return (int)res;
-}
-
-void _clear_(struct Api_connect *api){
-    curl_global_cleanup();
-}
-
-int api_connect_callback(void *data, size_t size, size_t nmemb, void *userp){
-    FILE *fp = fopen("./res/dataApi.api", "a");
-    if (fp == EMPTY){
-        perror("cweb");
-        return -1;
-    }
-    size_t realsize = size * nmemb;
-    fprintf(fp, "%.*s\n\n", (int)realsize, (char *)data);
-    fclose(fp);
-    return realsize;
-}
-
-int _simple_get(struct Api_connect *api){
-    if (api->is_error == OK){
-        int res = 0;
-        curl_easy_setopt(api->curl, CURLOPT_URL, api->url);
-        curl_easy_setopt(api->curl, CURLOPT_WRITEFUNCTION, api_connect_callback);
-        res = curl_easy_perform(api->curl);
-        if (res != CURLE_OK){
-            if (api->errors == true){
-                fprintf(stderr, "cweb: %s\n", curl_easy_strerror(res));
-                api->is_error = ERROR;
-                return ERROR;
-            }
-            else{
-                api->is_error = ERROR;
-                return ERROR;
-            }
-        }
-        curl_easy_cleanup(api->curl);
-        api->is_error = OK;
-        return OK;
-    }
-    else{
-        api->is_error = ERROR;
-        return ERROR;
-    }
-}
-
-int _prepare(struct Api_connect *api){
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    api->curl = curl_easy_init();
-    if (api->curl){
-        api->is_error = OK;
-        return OK;
-    }
-    else{
-        api->is_error = ERROR;
-        return ERROR;
-    }
-}
-
-int _simple_post(struct Api_connect *api){
-    int res = 0;
-    if (api->is_error == OK){
-        curl_easy_setopt(api->curl, CURLOPT_URL, api->url);
-        curl_easy_setopt(api->curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(api->curl, CURLOPT_POSTFIELDS, api->post);
-        curl_easy_setopt(api->curl, CURLOPT_WRITEFUNCTION, api_connect_callback);
-        struct curl_slist *headers = EMPTY;
-        headers = curl_slist_append(headers, api->headers);
-        curl_easy_setopt(api->curl, CURLOPT_HTTPHEADER, headers);
-        res = curl_easy_perform(api->curl);
-        if (res != CURLE_OK){
-            if (api->errors == true){
-                fprintf(stderr, "cweb: %s\n", curl_easy_strerror(res));
-                api->is_error = ERROR;
-                return ERROR;
-            }
-            else{
-                api->is_error = ERROR;
-                return ERROR;
-            }
-        }
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(api->curl);
-        api->is_error = OK;
-        return OK;
-    }
-    else{
-        api->is_error = ERROR;
-        return ERROR;
-    }
-}
-
-void getData_(struct Api_connect *api){
-    FILE *fp = fopen("./res/dataApi.api", "r");
-    if (fp == EMPTY){
-        perror("cweb");
-        return;
-    }
-    fread(api->data, sizeof(char), 1024, fp);
-    fclose(fp);
-}
-
-void api_connect(struct Api_connect *api){
-    api->url = "http://example.com";
-    api->headers = "Content-Type: application/json";
-    api->post = "{\"example1\":\"example1\",\"example2\":\"example2\"}";
-    api->errors = true;
-    api->is_error = OK;
-    api->prepare = _prepare;
-    api->simple_get = _simple_get;
-    api->clear = _clear_;
-    api->simple_post = _simple_post;
-}
-
-char *get_name_get_(const char *palabra, char *texto, char caracterLimite){
-    char true_palabra[1000];
-    concatplus(true_palabra, "%s", palabra);
-    char *encontrado = strstr(texto, true_palabra);
+string get (String palabra, string texto, char caracterLimite){
+    char palabra_copy[MAX];
+    snprintf(palabra_copy, MAX, "%s", palabra);
+    char *encontrado = strstr(texto, palabra_copy);
     if (encontrado != EMPTY){
-        size_t posicionFinal = encontrado - texto + strlen(true_palabra);
+        size_t posicionFinal = encontrado - texto + strlen(palabra_copy);
         const char *limite = strchr(texto + posicionFinal, caracterLimite);
         if (limite != EMPTY){
             size_t longitud = limite - (texto + posicionFinal);
@@ -440,7 +165,8 @@ void send_response(int client_socket, const char *header, const char *content_ty
 void send_file_response(int client_socket, const char *header, const char *content_type, const char *file_path){
     FILE *file = fopen(file_path, "rb");
     if (file == EMPTY){
-        perror("Error al abrir el archivo ");
+        if(show_errors == true)
+            perror("cweb");
         return;
     }
     fseek(file, 0, SEEK_END);
@@ -448,7 +174,8 @@ void send_file_response(int client_socket, const char *header, const char *conte
     fseek(file, 0, SEEK_SET);
     char *file_content = malloc(file_size);
     if (file_content == EMPTY){
-        perror("Error al asignar memoria");
+        if(show_errors == true)
+            perror("cweb");
         fclose(file);
         return;
     }
@@ -458,249 +185,146 @@ void send_file_response(int client_socket, const char *header, const char *conte
     free(file_content);
 }
 
-int _handle_client(struct SERVER *server){
-    char buffer[BUFFER_SIZE];
+String getExtension(String nombreArchivo){
+    String punto = strrchr(nombreArchivo, '.');
+    if (!punto || punto == nombreArchivo)
+        return "";
+    return punto + 1;
+}
+
+int compareExtension(String archivo1, String archivo2){
+    String extension1 = getExtension(archivo1);
+    String extension2 = getExtension(archivo2);
+    if (strcmp(extension1, extension2) == 0)
+        return OK;
+    return ERROR;
+}
+
+int handle_client(server * server){
     int bytes_read;
-    char dataGet[BUFFER_SIZE];
-    char pathPage[BUFFER_SIZE];
-    char *ofGet = get_name_get_("GET /", buffer, ' ');
+    char dataGet[MAX];
+    char pathPage[MAX];
+    string ofGet = get("GET /", buffer, ' ');
     if (server->simple_pages == true){
-        concatplus(pathPage, "html/%s", ofGet);
-        concatplus(dataGet, "GET /%s HTTP/1.1", ofGet);
+        snprintf(pathPage, MAX, "html/%s", ofGet);
+        snprintf(dataGet, MAX, "GET /%s HTTP/1.1", ofGet);
         bytes_read = read(server->client_socket, buffer, sizeof(buffer) - 1);
         if (bytes_read < 0){
-            if (server->errors == true){
+            if(show_errors == true)
                 perror("cweb");
-                server->is_error = ERROR;
-                close(server->client_socket);
-                return ERROR;
-            }
-            else{
-                server->is_error = ERROR;
-                close(server->client_socket);
-                return ERROR;
-            }
+            close(server->client_socket);
+            return ERROR;
         }
-        
         buffer[bytes_read] = '\0';
         for (int i = 0; i < server->pages_actives; i++){
-            char tm[MAX_VARS];
-            concatplus(tm, "GET /%s HTTP/1.1", server->pages[i]);
-            if (strncmp(buffer, tm, strlen(tm)) == 0){
+            char tm[MAX];
+            snprintf(tm, MAX, "GET /%s HTTP/1.1", server->pages[i]);
+            if (strncmp(buffer, tm, strlen(tm)) == 0)
                 send_response(server->client_socket, "HTTP/1.1 200 OK", "text/html", server->code_pages[i], strlen(server->code_pages[i]));
-                break;
-            }
-            else
-                send_response(server->client_socket, "HTTP/1.1 404 Not Found", "text/html", server->response_code_404, strlen(server->response_code_404));
         }
         return OK;
     }
-    concatplus(pathPage, "html/%s", ofGet);
-    concatplus(dataGet, "GET /%s HTTP/1.1", ofGet);
-hereIfError:
+    snprintf(pathPage, MAX, "html/%s", ofGet);
+    snprintf(dataGet, MAX, "GET /%s HTTP/1.1", ofGet);
     bytes_read = read(server->client_socket, buffer, sizeof(buffer) - 1);
     if (bytes_read < 0){
-        if (server->errors == true){
-            perror("cweb");
-            server->is_error = ERROR;
-            close(server->client_socket);
-            return ERROR;
-        }
-        else{
-            server->is_error = ERROR;
-            close(server->client_socket);
-            return ERROR;
-        }
+        if(show_errors == true)
+           perror("cweb");
+        close(server->client_socket);
+        return ERROR;
     }
     buffer[bytes_read] = '\0';
-    if (strncmp(buffer, "GET / HTTP/1.1", 14) == 0){
-    defaultPage:
-        send_file_response(server->client_socket, "HTTP/1.1 200 OK", "text/html", "html/index.c");
-    }
+    if (strncmp(buffer, "GET / HTTP/1.1", 14) == 0)
+        send_file_response(server->client_socket, "HTTP/1.1 200 OK", "text/html", "html/index.html");
     else if (strncmp(buffer, dataGet, strlen(dataGet)) == 0){
         if (compareExtension(ofGet, "example.c") == OK)
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", "text/html", pathPage);
-        //Mimes de imagenes
         else if (compareExtension(ofGet, "example.png") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", IMGS_MIMES[1], path1);
         }
         if (compareExtension(ofGet, "example.jpeg") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", IMGS_MIMES[0], path1);
         }
         else if (compareExtension(ofGet, "example.gif") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", IMGS_MIMES[2], path1);
         }
         if (compareExtension(ofGet, "example.bmp") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", IMGS_MIMES[3], path1);
         }
         else if (compareExtension(ofGet, "example.webp") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", IMGS_MIMES[4], path1);
         }
         if (compareExtension(ofGet, "example.svg") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", IMGS_MIMES[5], path1);
         }
         else if (compareExtension(ofGet, "example.ico") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", IMGS_MIMES[6], path1);
         }
-        //Mimes text documents
         if (compareExtension(ofGet, "example.js") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "js/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "js/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", TEXT_DOCUMENTS_MIMES[3], path1);
         }
         else if (compareExtension(ofGet, "example.xml") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "res/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "res/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", TEXT_DOCUMENTS_MIMES[4], path1);
         }
         if (compareExtension(ofGet, "example.json") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "res/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "res/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", TEXT_DOCUMENTS_MIMES[5], path1);
         }
-        //Mimes videos
         else if (compareExtension(ofGet, "example.mp4") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", VIDEOS_MIMES[0], path1);
         }
         if (compareExtension(ofGet, "example.webm") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", VIDEOS_MIMES[1], path1);
         }
         else if (compareExtension(ofGet, "example.ogg") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", VIDEOS_MIMES[2], path1);
         }
         if (compareExtension(ofGet, "example.avi") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", VIDEOS_MIMES[3], path1);
         }
         else if (compareExtension(ofGet, "example.quicktime") == OK){
-            char path1[BUFFER_SIZE];
-            concatplus(path1, "img/%s", ofGet);
+            char path1[MAX];
+            snprintf(path1, MAX, "img/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", VIDEOS_MIMES[4], path1);
         }
         if (compareExtension(ofGet, "example.css") == OK){
-            char path2[BUFFER_SIZE];
-            concatplus(path2, "css/%s", ofGet);
+            char path2[MAX];
+            snprintf(path2, MAX, "css/%s", ofGet);
             send_file_response(server->client_socket, "HTTP/1.1 200 OK", "text/css", path2);
         }
         else
-            goto defaultPage;
+            send_file_response(server->client_socket, "HTTP/1.1 200 OK", "text/html", "html/index.html");
     }
     else
         send_response(server->client_socket, "HTTP/1.1 404 Not Found", "text/html", server->response_code_404, strlen(server->response_code_404));
     close(server->client_socket);
-    server->is_error = OK;
-    return OK;
-}
-
-int _accept_conections(struct SERVER *server){
-    server->client_addr_len = sizeof(server->client_addr);
-    server->client_socket = accept(server->server_socket, (struct sockaddr *)&server->client_addr, &server->client_addr_len);
-    if (server->client_socket < 0){
-        if (server->errors == true){
-            perror("cweb");
-            server->is_error = ERROR;
-            close(server->server_socket);
-            return ERROR;
-        }
-        else{
-            server->is_error = ERROR;
-            close(server->server_socket);
-            return ERROR;
-        }
-    }
-    server->is_error = OK;
-    return OK;
-}
-
-char *_load_response(){
-    return buffer;
-}
-
-int _save_response_server(const char *file){
-    char res[MAX_VARS];
-    concatplus(res, "logs/%s.server", file);
-    FILE *fp = fopen(res, "a");
-    if (fp != EMPTY)
-    {
-        fprintf(fp, "\n[%s]\n", buffer);
-        fclose(fp);
-        return OK;
-    }
-    else
-    {
-        perror("cweb");
-        return ERROR;
-    }
-}
-
-int prepare_SERVER(struct SERVER *server){
-    server->server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (server->server_socket < 0){
-        if (server->errors == true){
-            perror("cweb");
-            server->is_error = ERROR;
-            return ERROR;
-        }
-        else{
-            server->is_error = ERROR;
-            return ERROR;
-        }
-    }
-    server->server_addr.sin_family = AF_INET;
-    server->server_addr.sin_addr.s_addr = INADDR_ANY;
-    server->server_addr.sin_port = htons(server->port);
-    if (bind(server->server_socket, (struct sockaddr *)&server->server_addr, sizeof(server->server_addr)) < 0){
-        if (server->errors == true){
-            perror("cweb");
-            server->is_error = ERROR;
-            close(server->server_socket);
-            return ERROR;
-        }
-        else{
-            server->is_error = ERROR;
-            close(server->server_socket);
-            return ERROR;
-        }
-    }
-    if (listen(server->server_socket, server->listen) < 0){
-        if (server->errors == true){
-            perror("cweb");
-            server->is_error = ERROR;
-            close(server->server_socket);
-            return ERROR;
-        }
-        else {
-            server->is_error = ERROR;
-            close(server->server_socket);
-            return ERROR;
-        }
-    }
-    server->is_error = OK;
-    server->handle_client = _handle_client;
-    server->accept_conections = _accept_conections;
-    server->load_response = _load_response;
-    server->save_response_server = _save_response_server;
     return OK;
 }
 
