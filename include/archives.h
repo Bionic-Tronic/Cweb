@@ -1,182 +1,134 @@
-////////////////////////////////////////////////////////////////
-//Archivo: archives.h                                         //
-//Este header tiene todas las funciones relacionada para      //
-//el manejo de archivo tanto de archivos subidos desde una web//
-//hasta archivos descargados desde el servidor.               //
-////////////////////////////////////////////////////////////////
 #ifndef ARCHIVES_H
 #define ARCHIVES_H
 
-static String _getName(){
-	char *resultStr = searchInResponse("filename=\"", '"');
-	if (resultStr != EMPTY){
-		return resultStr;
-	}
-	return EMPTY;
+#define FILE_ERROR 404
+#define FILE_OK    201
+
+#include "../include/cweb.h"
+#include "server.h"
+
+typedef struct{
+    string filename;
+    string typefile;
+    string sizefile;
+    string end_of_header;
+    size_t body_offset;
+    size_t length;
+    string content_file;
+    int pre;
+} archives;
+
+int create_file (String fileName, String contentFile, String writeFile){
+    if(strcmp(writeFile,"r") == 0 || strcmp(writeFile,"rb") == 0)
+        return FILE_ERROR;
+    FILE * fp = fopen(fileName, writeFile);
+    if(fp == EMPTY)
+        return FILE_ERROR;
+    fprintf(fp, "%s", contentFile);
+    fclose(fp);
+    return FILE_OK;
 }
 
-static String _getSize(){
-	char *resultStr = searchInResponse("Content-Length: ", '\0');
-	if (resultStr != EMPTY){
-		return resultStr;
-	}
-	return EMPTY;
+string getof (String palabra, char caracterLimite){
+    String texto = GET_RESPONSE();
+    String encontrado = strstr(texto, palabra);
+    if (encontrado != EMPTY){
+        size_t posicionFinal = encontrado - texto + strlen(palabra);
+        String limite = strchr(texto + posicionFinal, caracterLimite);
+        if (limite != EMPTY){
+            size_t longitud = limite - (texto + posicionFinal);
+            string subcadena = (string)malloc(longitud + 1);
+            strncpy(subcadena, texto + posicionFinal, longitud);
+            subcadena[longitud] = '\0';
+            return subcadena;
+        }
+        else
+            return EMPTY;
+    }
+    else
+        return EMPTY;
 }
 
-static int _Ok(){
-	String text = GET_RESPONSE();
-	char *word = "Content-Length";
-	char *text_copy = strdup(text);
-	char *line = strtok(text_copy, "\n");
+void getNameFile (archives * archives){
+    archives->filename = getof("filename=\"",'"');
+    if(archives->filename == EMPTY)
+        archives->filename = "";
+}
+
+void getSizeFile (archives * archives){
+    archives->sizefile = getof("Content-Length: ",'\0');
+    if(archives->sizefile == EMPTY)
+        archives->sizefile = "";
+}
+
+int isset_file (){
+    String text = GET_RESPONSE();
+	string word = "Content-Length";
+	string text_copy = strdup(text);
+	string line = strtok(text_copy, "\n");
 	while (line != EMPTY){
 		if (strstr(line, word) != EMPTY){
-			return OK;
+			return FILE_OK;
 		}
 		line = strtok(EMPTY, "\n");
 	}
 	free(text_copy);
-	return ERROR;
+	return FILE_ERROR;
 }
 
-String _getType(){
-	char *resultStr = searchInResponse("Content-Type:", '\0');
-	if (resultStr != EMPTY){
-		return resultStr;
-	}
-	return EMPTY;
+void getTypeFile (archives * archives){
+    archives->typefile = getof("Content-Type:",'\0');
+    if(archives->typefile == EMPTY)
+        archives->typefile = "";
 }
 
-static int _prepare_file(struct SERVER *s){
-	end_of_header = strstr(buffer, "\r\n\r\n");
-	if (end_of_header != EMPTY){
-		body_offset = end_of_header + 4 - buffer;
-		pre = 1;
-		content_file = buffer + body_offset;
-		length = s->valread - body_offset;
+int prepare_save_file (server * s, archives * archive){
+    archive->end_of_header = strstr(buffer, "\r\n\r\n");
+	if (archive->end_of_header != EMPTY){
+		archive->body_offset = archive->end_of_header + 4 - buffer;
+		archive->pre = 1;
+		archive->content_file = buffer + archive->body_offset;
+		archive->length = s->valread - archive->body_offset;
+		return FILE_OK;
 	}
-	else{
-		puts("cweb: not have content file");
-		pre = 0;
-		return ERROR;
-	}
+	puts("cweb: not have content file");
+	archive->pre = 0;
+	return FILE_ERROR;
 }
 
-static int _upload_file(const String s){
-	FILE *file = fopen(s, "wb");
-	if (pre == 1){
-		if (file != EMPTY){
-			fwrite(content_file, sizeof(char), length, file);
-			fclose(file);
-			pre = 0;
-			return OK;
-		}
-		else{
-			perror("cweb ");
-			pre = 0;
-			return ERROR;
-		}
+int move_uploaded_file(archives * archive){
+	FILE * fp;
+	if(archive->pre != 1){
+	    puts("cweb: file is not prepared");
+	    return FILE_ERROR;
 	}
-	else{
-		puts("cweb: prepare() not declared");
-		pre = 0;
-		return OK;
+	fp = fopen(archive->filename,"wb");
+	if(fp == EMPTY){
+	    perror("cweb ");
+	    return FILE_ERROR;
 	}
-	fclose(file);
+	fwrite(archive->content_file, sizeof(char), archive->length, fp);
+	fclose(fp);
+	archive->pre = 0;
+	return FILE_OK;
 }
 
-static void _resetStructData(){
-	pre = 0;
-	length = 0;
-	body_offset = 0;
-	memset(content_file, 0, sizeof(content_file));
-	memset(end_of_header, 0, sizeof(end_of_header));
-}
-
-static int _permission_download_file(struct SERVER * Server){
-	String fileName = searchInResponse("GET /", ' ');
+int download_file(server * Server){
+	string fileName = getof("GET /", ' ');
 	FILE *fp = fopen(fileName, "rb");
 	size_t bytes_read;
-	char r_headers_1[BUFFER_SIZE];
-	concatplus(r_headers_1, "HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename=\"%s\" \r\nContent-Type: text/plain\r\n\r\n", fileName);
+	char r_headers_1[1024];
+	snprintf(r_headers_1, 1024, "HTTP/1.1 200 OK\r\nContent-Disposition: attachment; filename=\"%s\" \r\nContent-Type: text/plain\r\n\r\n", fileName);
 	if (fp == EMPTY){
 		perror("cweb ");
-		return ERROR;
+		return FILE_ERROR;
 	}
-	else{
-		send(Server->client_socket, r_headers_1, strlen(r_headers_1), 0);
-		while ((bytes_read = fread(buffer, 1, sizeof(buffer), fp)) > 0){
+	send(Server->client_socket, r_headers_1, strlen(r_headers_1), 0);
+	while ((bytes_read = fread(buffer, 1, sizeof(buffer), fp)) > 0){
 			send(Server->client_socket, buffer, bytes_read, 0);
-		}
-		fclose(fp);
-		return OK;
 	}
 	fclose(fp);
-	return ERROR;
-}
-
-static int _send_file(struct SERVER *s, const char *filename){
-	String filename2 = searchInResponse("GET /", ' ');
-	if (strcmp(filename2, filename) == 0){
-		FILE *file = fopen(filename, "rb");
-		if (file == EMPTY){
-			fprintf(stderr, "Error opening file\n");
-			return ERROR;
-		}
-		fseek(file, 0, SEEK_END);
-		long file_size = ftell(file);
-		fseek(file, 0, SEEK_SET);
-		char *file_contents = malloc(file_size);
-		fread(file_contents, 1, file_size, file);
-		fclose(file);
-		char response[1024];
-		snprintf(response, sizeof(response),
-				 "HTTP/1.1 200 OK\r\n"
-				 "Content-Length: %ld\r\n"
-				 "Content-Disposition: attachment; filename=\"%s\"\r\n"
-				 "Content-Type: application/octet-stream\r\n\r\n",
-				 file_size, filename);
-	    printf("Content-Length: %ld\nfilename=\"%s\"",file_size, filename);
-		send(s->client_socket, response, strlen(response), 0);
-		send(s->client_socket, file_contents, file_size, 0);
-		free(file_contents);
-		return OK;
-	}
-	return ERROR;
-}
-
-static void _create_file (const String nombre, const String data, const String r){
-	FILE * fp = fopen(nombre,r);
-	if (fp == EMPTY){
-		perror("cweb ");
-		return;
-	}
-	fprintf(fp, "%s", data);
-	fclose(fp);
-}
-
-String _get_content_file (const String archivo, int length) {
-    char content_html[HTML_LONG];
-    FILE *fp = fopen(archivo, "rb");
-    if (fp == NULL)
-    {
-        perror("cweb ");
-    }
-    size_t html_size = fread(content_html, sizeof(char), length, fp);
-    fclose(fp);
-    return content_html;
-}
-
-void archives (Archives *f)
-{
-	f->name_archive = _getName;
-	f->size_archive = _getSize;
-	f->type_archive = _getType;
-	f->prepare_save = _prepare_file;
-	f->save = _upload_file;
-	f->isset_archive = _Ok;
-	f->upload = _send_file;
-	f->create_archive = _create_file;
-	f->get_content_file = _get_content_file;
+	return FILE_OK;
 }
 
 #endif
