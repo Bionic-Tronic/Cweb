@@ -1,7 +1,9 @@
 #define _INCLUDE_ALL_
 #include "include/cweb.h"
+#include <sqlite3.h>
+#include <curl/curl.h>
 
-int main (){
+void server_web (){
    show_errors = true;
    html html;
    html.code_html = 
@@ -38,5 +40,37 @@ int main (){
        handle_client(&server);
        printf("%s",GET_RESPONSE());
    }
+}
+
+void server_smtp (){
+    SMTP smtp;
+    smtp.port = 1025;
+    smtp.isContinue = true;
+    smtp.nameFileEmail = "pruebas";
+    prepare_smtp(&smtp);
+    listen_emails(&smtp);
+    end_smtp(&smtp);
+}
+
+void send_simple_mail (){
+    
+}
+
+void connect_api_ (){
+    connect_api api;
+    connect_api_construct(&api);
+    api.url = "https://api.thecatapi.com/v1/images/search";
+    connect_api_prepare(&api);
+    connect_api_get(&api);
+    connect_api_clear();
+    connect_api_getData(&api);
+    printf("Datos api: %s\n",api.data);
+}
+
+int main (){
+   //server_web();
+   //server_smtp();
+   //send_simple_mail();
+   //connect_api_();
    return 0;
 }
