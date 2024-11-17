@@ -3,28 +3,6 @@
 
 #include "cweb.h"
 #include "server.h"
-/*
-typedef struct{
-    struct{
-        string (*get)();
-        int (*isset)(const String);
-        string (*get_name)(const string , char);
-        int (*read_img)();
-        int (*read_video)();
-    } Get;
-    struct{
-        string (*post)();
-        int (*isset)(const String);
-        string (*post_name)(String, char);
-    } Post;
-    struct{
-        const int code;
-        String msg;
-    } request_responses;
-    int (*isset)(String);
-    string (*get_isset)(String, char);
-} Http;
-*/
 
 int isset (String word){
 	String texto = GET_RESPONSE();
