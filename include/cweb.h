@@ -3,6 +3,7 @@
 
 typedef char * string;
 typedef const char * String;
+typedef char page [10000];
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +37,7 @@ typedef const char * String;
 #include "base_data.h"
 #include "api_connect.h"
 #include "http.h"
-
+#include "json.h"
 #endif
 
 typedef struct{

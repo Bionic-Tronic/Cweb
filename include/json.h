@@ -1,15 +1,35 @@
-////////////////////////////////////////////////////////////////
-//Archivo: json.h                                             //
-//Este header contiene todas las funciónes necesarias para    //
-//convertir un string json a un arreglo                       //
-////////////////////////////////////////////////////////////////
 #ifndef JSON_H
 #define JSON_H
+
+#define MAX_LENGTH_JSON_TEXT 1000
+#define MAX_ARRAY_JSON 100
+
+typedef enum{
+    JSON_STRING,
+    JSON_NUMBER,
+    JSON_OBJECT,
+    JSON_ARRAY,
+    JSON_BOOLEAN,
+    JSON_NULL
+} JsonValueType;
+
+typedef struct{
+    JsonValueType type;
+    union {
+        char string_value[MAX_LENGTH_JSON_TEXT];
+        double number_value;
+        int boolean_value;
+    } value;
+} JsonValue;
+
+typedef struct{
+    JsonValue values[MAX_ARRAY_JSON];
+    int size;
+} JsonArray;
 
 void trim(char *str) {
     char *start = str;
     char *end = str + strlen(str) - 1;
-
     while (isspace(*start)) start++;
     while (end > start && isspace(*end)) end--;
 
