@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería de gatos</title>
+    <style>
+    body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(45deg, #ff9a9e, #fad0c4, #ffecd2);
+    color: #333;
+}
+
+header {
+    background-color: #ff6b6b;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+main {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+.carousel {
+    position: relative;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.carousel-container {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.carousel-container img {
+    width: 100%;
+    display: none;
+}
+
+.carousel-container img.active {
+    display: block;
+}
+
+.carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255,255,255,0.7);
+    border: none;
+    font-size: 24px;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.carousel-button:hover {
+    background-color: rgba(255,255,255,0.9);
+}
+
+.prev {
+    left: 10px;
+}
+
+.next {
+    right: 10px;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.gallery img {
+    width: 100%;
+    border-radius: 10px;
+    transition: transform 0.3s;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.gallery img:hover {
+    transform: scale(1.05);
+}
+
+footer {
+    background-color: #4ecdc4;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .gallery {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Galería de gatos</h1>
+    </header>
+    <main>
+        <section class="carousel">
+            <button class="carousel-button prev">&lt;</button>
+            <div class="carousel-container">
+                <img src="https:%s" alt="Gato 1" class="active">
+                <img src="https:%s" alt="Gato 2">
+                <img src="https:%s" alt="Gato 3">
+                <img src="https:%s" alt="Gato 4">
+                <img src="https:%s" alt="Gato 5">
+            </div>
+            <button class="carousel-button next">&gt;</button>
+        </section>
+        <section class="gallery">
+            <img src="https:%s" alt="Gato 6">
+            <img src="https:%s" alt="Gato 7">
+            <img src="https:%s" alt="Gato 8">
+            <img src="https:%s" alt="Gato 9">
+            <img src="https:%s" alt="Gato 10">
+            <img src="https:%s" alt="Gato 11">
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Galería de gatos. Todos los derechos reservados.</p>
+    </footer>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const carousel = document.querySelector('.carousel-container');
+    const images = carousel.querySelectorAll('img');
+    const prevButton = document.querySelector('.prev');
+    const nextButton = document.querySelector('.next');
+    let currentIndex = 0;
+    function showImage(index) {
+        images.forEach(img => img.classList.remove('active'));
+        images[index].classList.add('active');
+    }
+    function nextImage() {
+        currentIndex = (currentIndex + 1) % images.length;
+        showImage(currentIndex);
+    }
+    function prevImage() {
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+        showImage(currentIndex);
+    }
+    nextButton.addEventListener('click', nextImage);
+    prevButton.addEventListener('click', prevImage);
+    setInterval(nextImage, 5000);
+});
+    </script>
+</body>
+</html>
