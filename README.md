@@ -5,4 +5,5 @@ En la actualidad se pueden crear servidores webs, realizar peticiones a Apis, co
 ## Librerias externas o ajenas a cweb
 Para poder realizar esto se esta usando las librerias: **curl** y **sqlite3** las cuales encontraras en sus paginas oficiales
 ## Por último
-Esta libreria tambien tiene como interes ver que tal seria si se usara el lenguaje C para la web pero del lado del servidor y de momento solo funciona en linux y si de causalidad tienes un dispositivo movil con sistema Android funcionara ahi tambien.
+Prodras ver algunos codigos de ejemplo de las pruebas que realizo en **test**.
+Por último la creación de esta libreria tambien tiene como interes ver que tal seria si se usara el lenguaje C para la web y sufir un poco con el, pero del lado del servidor y de momento solo funciona en linux.
